@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>HabitOS</title>
+  <meta name="theme-color" content="#0A0A0A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0A0A; --surface: #141414; --card: #1A1A1A;
+      --border: #2A2A2A; --green: #C8F135; --amber: #F5A623;
+      --red: #FF4444; --text: #F0F0F0; --muted: #666; --radius: 12px;
+    }
+    html, body, #root { height: 100%; background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* App layout */
+    .app { max-width: 430px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+    .header { padding: 24px 20px 0; background: var(--bg); position: sticky; top: 0; z-index: 10; }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .greeting { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; font-family: 'Barlow Condensed', sans-serif; }
+    .uname { font-family: 'Barlow Condensed', sans-serif; font-size: 34px; font-weight: 900; letter-spacing: -1px; line-height: 1.1; }
+    .switch-user { font-size: 11px; color: var(--muted); text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; font-family: 'Barlow', sans-serif; }
+    .weekly-pill { background: var(--card); border: 1.5px solid var(--border); border-radius: 999px; padding: 8px 16px; text-align: center; flex-shrink: 0; }
+    .weekly-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+    .weekly-score { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: var(--green); line-height: 1; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+    .tab { flex: 1; background: none; border: none; padding: 10px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .2s, border-color .2s; }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+    .content { flex: 1; overflow-y: auto; padding: 16px 20px 100px; display: flex; flex-direction: column; gap: 12px; }
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--surface); border-top: 1.5px solid var(--border); display: flex; padding: 8px 0 20px; z-index: 20; }
+    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; padding: 8px; }
+    .nav-icon { font-size: 22px; }
+    .nav-label { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); transition: color .2s; }
+    .nav-btn.active .nav-label { color: var(--green); }
+    .nav-btn.active .nav-icon { filter: drop-shadow(0 0 6px rgba(200,241,53,.6)); }
+
+    /* Onboarding */
+    .onboard { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 32px; gap: 28px; max-width: 430px; margin: 0 auto; }
+    .logo { font-family: 'Barlow Condensed', sans-serif; font-size: 64px; font-weight: 900; letter-spacing: -3px; line-height: 1; }
+    .logo span { color: var(--green); }
+    .onboard-sub { color: var(--muted); font-size: 15px; text-align: center; }
+    .onboard-form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .onboard-input { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px 20px; font-size: 16px; font-family: 'Barlow', sans-serif; color: var(--text); width: 100%; outline: none; transition: border-color .2s; }
+    .onboard-input:focus { border-color: var(--green); }
+    .onboard-input::placeholder { color: var(--muted); }
+    .btn-primary { background: var(--green); color: #000; border: none; border-radius: var(--radius); padding: 16px; font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: opacity .15s, transform .1s; text-transform: uppercase; }
+    .btn-primary:hover { opacity: .9; }
+    .btn-primary:active { transform: scale(.98); }
+    .btn-primary:disabled { opacity: .3; cursor: not-allowed; }
+
+    /* Date bar */
+    .date-bar { display: flex; align-items: center; justify-content: space-between; background: var(--card); border-radius: var(--radius); padding: 12px 16px; border: 1.5px solid var(--border); cursor: pointer; user-select: none; }
+    .date-bar-left { display: flex; flex-direction: column; }
+    .date-bar-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+    .date-bar-value { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; }
+    .date-bar-value.past { color: var(--amber); }
+    .chevron { color: var(--muted); font-size: 20px; transition: transform .2s; display: inline-block; }
+    .chevron.open { transform: rotate(180deg); }
+
+    /* Summary */
+    .summary { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: var(--radius); padding: 14px 16px; border: 1.5px solid var(--border); }
+    .summary-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .summary-bar { height: 100%; border-radius: 999px; background: var(--green); transition: width .4s ease; }
+    .summary-text { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; white-space: nowrap; }
+    .summary-text span { color: var(--green); }
+    .section-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; padding: 4px 0 0 2px; }
+
+    /* Habit card */
+    .habit-card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: border-color .2s, background .15s; user-select: none; position: relative; overflow: hidden; }
+    .habit-card:active { transform: scale(.99); }
+    .habit-card.success { border-color: var(--green); background: #141F00; }
+    .habit-card.fail { border-color: var(--red); background: #1F0000; }
+    .habit-icon { font-size: 28px; line-height: 1; }
+    .habit-info { flex: 1; }
+    .habit-name { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: .5px; line-height: 1; }
+    .habit-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .habit-meta.avoid { color: var(--amber); }
+    .streak-badge { display: flex; flex-direction: column; align-items: center; min-width: 44px; }
+    .streak-num { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; line-height: 1; color: var(--green); }
+    .streak-num.zero { color: var(--muted); }
+    .streak-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .toggle { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; transition: all .2s; background: transparent; flex-shrink: 0; }
+    .toggle.success { background: var(--green); border-color: var(--green); color: #000; }
+    .toggle.fail { background: var(--red); border-color: var(--red); color: #fff; }
+    @keyframes flash { 0%{opacity:0;transform:scale(.8)} 50%{opacity:1;transform:scale(1.1)} 100%{opacity:0;transform:scale(1.4)} }
+    .flash { position:absolute; inset:0; background:rgba(200,241,53,.08); animation:flash .35s ease forwards; pointer-events:none; border-radius:var(--radius); }
+
+    /* Calendar */
+    .calendar { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .cal-month { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; }
+    .cal-nav { background: none; border: 1.5px solid var(--border); color: var(--text); border-radius: 6px; width: 30px; height: 30px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+    .cal-dow { font-size: 10px; color: var(--muted); text-align: center; padding-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+    .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+    .cal-day.disabled { color: var(--muted); cursor: not-allowed; opacity: .4; }
+    .cal-day.today { border: 1.5px solid var(--green); color: var(--green); }
+    .cal-day.selected { background: var(--green); color: #000; font-weight: 800; }
+    .cal-day:not(.disabled):not(.selected):hover { background: var(--border); }
+
+    /* Progress */
+    .range-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .range-scroll::-webkit-scrollbar { display: none; }
+    .range-chip { background: var(--card); border: 1.5px solid var(--border); border-radius: 999px; padding: 7px 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all .2s; }
+    .range-chip.active { background: var(--green); border-color: var(--green); color: #000; }
+    .progress-cards { display: flex; flex-direction: column; gap: 10px; }
+    .progress-card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .progress-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .progress-card-title { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; }
+    .progress-pct { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; color: var(--muted); }
+    .progress-pct.high { color: var(--green); }
+    .progress-pct.mid { color: var(--amber); }
+    .progress-pct.low { color: var(--red); }
+    .progress-bar-wrap { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 10px; }
+    .progress-bar { height: 100%; border-radius: 999px; transition: width .6s ease; background: var(--muted); }
+    .progress-bar.high { background: var(--green); }
+    .progress-bar.mid { background: var(--amber); }
+    .progress-bar.low { background: var(--red); }
+    .progress-dots { display: flex; gap: 3px; flex-wrap: wrap; }
+    .progress-dot { width: 10px; height: 10px; border-radius: 2px; }
+    .progress-dot.success { background: var(--green); }
+    .progress-dot.fail { background: var(--red); }
+    .progress-dot.empty { background: var(--border); }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+// ── Date utils (all local timezone, zero UTC) ────────────────────────────────
+const fmt = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const today = () => fmt(new Date());
+const addDays = (dateStr, n) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return fmt(new Date(y, m - 1, d + n));
+};
+const dateRange = (start, end) => {
+  const dates = []; let cur = start;
+  while (cur <= end) { dates.push(cur); cur = addDays(cur, 1); }
+  return dates;
+};
+const getDateLabel = (dateStr, todayStr) => {
+  if (dateStr === todayStr) return 'Today';
+  if (dateStr === addDays(todayStr, -1)) return 'Yesterday';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+};
+const getRangeForId = (id) => {
+  const todayStr = today();
+  const [y, mo, dd] = todayStr.split('-').map(Number);
+  const dow = new Date(y, mo - 1, dd).getDay();
+  const monday = addDays(todayStr, -(dow === 0 ? 6 : dow - 1));
+  switch (id) {
+    case 'this_week':     return { start: monday, end: todayStr };
+    case 'last_week':     { const lm = addDays(monday, -7); return { start: lm, end: addDays(lm, 6) }; }
+    case 'this_month':    return { start: `${y}-${String(mo).padStart(2,'0')}-01`, end: todayStr };
+    case 'last_month':    { const lm = new Date(y, mo-2, 1); const le = new Date(y, mo-1, 0); return { start: fmt(lm), end: fmt(le) }; }
+    case 'last_4_weeks':  return { start: addDays(todayStr, -27), end: todayStr };
+    case 'last_6_months': return { start: fmt(new Date(y, mo-7, 1)), end: todayStr };
+    case 'this_year':     return { start: `${y}-01-01`, end: todayStr };
+    case 'last_year':     return { start: `${y-1}-01-01`, end: `${y-1}-12-31` };
+    default:              return { start: monday, end: todayStr };
+  }
+};
+
+// ── Config ───────────────────────────────────────────────────────────────────
+const HABITS = [
+  { id: 'workout', label: 'Workout', icon: '🏋️', type: 'build' },
+  { id: 'steps',   label: 'Steps',   icon: '👟', type: 'build' },
+  { id: 'sleep',   label: 'Sleep',   icon: '😴', type: 'build' },
+  { id: 'protein', label: 'Protein', icon: '🥩', type: 'build' },
+  { id: 'alcohol', label: 'Alcohol', icon: '🍺', type: 'avoid' },
+  { id: 'junk',    label: 'Junk',    icon: '🍔', type: 'avoid' },
+];
+const TIME_RANGES = [
+  { id: 'this_week', label: 'This Week' }, { id: 'last_week', label: 'Last Week' },
+  { id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' },
+  { id: 'last_4_weeks', label: 'Last 4 Weeks' }, { id: 'last_6_months', label: 'Last 6 Months' },
+  { id: 'this_year', label: 'This Year' }, { id: 'last_year', label: 'Last Year' },
+];
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+const isSuccess = (habit, value) => value !== null && value !== undefined && (habit.type === 'build' ? value === true : value === false);
+const loadData = (user) => { try { return JSON.parse(localStorage.getItem(`habitos_${user}`) || '{}'); } catch { return {}; } };
+const saveData = (user, data) => localStorage.setItem(`habitos_${user}`, JSON.stringify(data));
+const getVal = (data, date, id) => data?.[date]?.[id] ?? null;
+const setVal = (data, date, id, val) => ({ ...data, [date]: { ...(data[date] || {}), [id]: val } });
+const loadUser = () => localStorage.getItem('habitos_user') || '';
+const saveUser = (n) => localStorage.setItem('habitos_user', n);
+const clearUser = () => localStorage.removeItem('habitos_user');
+
+// ── Scoring ──────────────────────────────────────────────────────────────────
+const calcStreak = (data, habitId) => {
+  const habit = HABITS.find(h => h.id === habitId);
+  let streak = 0, cur = today();
+  const todayVal = getVal(data, cur, habitId);
+  if (todayVal === null) cur = addDays(cur, -1);
+  else if (isSuccess(habit, todayVal)) { streak = 1; cur = addDays(cur, -1); }
+  else return 0;
+  for (let i = 0; i < 365; i++) {
+    if (isSuccess(habit, getVal(data, cur, habitId))) { streak++; cur = addDays(cur, -1); }
+    else break;
+  }
+  return streak;
+};
+const calcWeekly = (data) => {
+  const todayStr = today();
+  const [y, mo, dd] = todayStr.split('-').map(Number);
+  const dow = new Date(y, mo-1, dd).getDay();
+  const monday = addDays(todayStr, -(dow === 0 ? 6 : dow - 1));
+  const days = dateRange(monday, todayStr);
+  const perfect = days.filter(d => HABITS.every(h => isSuccess(h, getVal(data, d, h.id)))).length;
+  return { score: perfect, total: days.length };
+};
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const calDays = (y, m) => {
+  const first = new Date(y, m, 1), last = new Date(y, m+1, 0);
+  const offset = (first.getDay() + 6) % 7;
+  const days = Array(offset).fill(null);
+  for (let d = 1; d <= last.getDate(); d++) days.push(d);
+  return days;
+};
+
+function MiniCalendar({ selectedDate, todayStr, onSelect }) {
+  const minDate = addDays(todayStr, -6);
+  const [y0, m0] = selectedDate.split('-').map(Number);
+  const [cal, setCal] = useState({ year: y0, month: m0 - 1 });
+  const days = calDays(cal.year, cal.month);
+  const prev = () => setCal(c => { const d = new Date(c.year, c.month-1, 1); return { year: d.getFullYear(), month: d.getMonth() }; });
+  const next = () => setCal(c => { const d = new Date(c.year, c.month+1, 1); return { year: d.getFullYear(), month: d.getMonth() }; });
+  return (
+    <div className="calendar">
+      <div className="cal-header">
+        <button className="cal-nav" onClick={prev}>‹</button>
+        <span className="cal-month">{MONTHS[cal.month]} {cal.year}</span>
+        <button className="cal-nav" onClick={next}>›</button>
+      </div>
+      <div className="cal-grid">
+        {['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => <div key={d} className="cal-dow">{d}</div>)}
+        {days.map((day, i) => {
+          if (!day) return <div key={i} />;
+          const ds = fmt(new Date(cal.year, cal.month, day));
+          const disabled = ds > todayStr || ds < minDate;
+          const cls = ['cal-day', disabled?'disabled':'', ds===todayStr&&ds!==selectedDate?'today':'', ds===selectedDate?'selected':''].join(' ');
+          return <div key={i} className={cls} onClick={() => !disabled && onSelect(ds)}>{day}</div>;
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── HabitCard ─────────────────────────────────────────────────────────────────
+function HabitCard({ habit, value, streak, onToggle }) {
+  const [flash, setFlash] = useState(false);
+  const handleClick = () => { setFlash(true); setTimeout(() => setFlash(false), 350); onToggle(); };
+  const ok = isSuccess(habit, value);
+  const fail = value !== null && !ok;
+  return (
+    <div className={`habit-card ${ok?'success':''} ${fail?'fail':''}`} onClick={handleClick}>
+      {flash && <div className="flash" />}
+      <div className="habit-icon">{habit.icon}</div>
+      <div className="habit-info">
+        <div className="habit-name">{habit.label}</div>
+        <div className={`habit-meta ${habit.type==='avoid'?'avoid':''}`}>{habit.type==='build'?'BUILD':'AVOID'}</div>
+      </div>
+      <div className="streak-badge">
+        <div className={`streak-num ${streak===0?'zero':''}`}>{streak}</div>
+        <div className="streak-label">streak</div>
+      </div>
+      <div className={`toggle ${ok?'success':''} ${fail?'fail':''}`}>{ok?'✓':fail?'✗':''}</div>
+    </div>
+  );
+}
+
+// ── TodayTab ─────────────────────────────────────────────────────────────────
+function TodayTab({ data, setData, username }) {
+  const [todayStr] = useState(() => today());
+  const [selectedDate, setSelectedDate] = useState(() => today());
+  const [calOpen, setCalOpen] = useState(false);
+  const isPast = selectedDate !== todayStr;
+
+  const handleToggle = useCallback((habitId) => {
+    const habit = HABITS.find(h => h.id === habitId);
+    const cur = getVal(data, selectedDate, habitId);
+    let next;
+    if (habit.type === 'build') next = cur === null ? true : cur === true ? false : null;
+    else next = cur === null ? false : cur === false ? true : null;
+    const newData = setVal(data, selectedDate, habitId, next);
+    setData(newData); saveData(username, newData);
+  }, [data, selectedDate, username, setData]);
+
+  const doneCount = HABITS.filter(h => isSuccess(h, getVal(data, selectedDate, h.id))).length;
+  const pct = (doneCount / HABITS.length) * 100;
+  const label = getDateLabel(selectedDate, todayStr);
+
+  return (
+    <>
+      <div className="date-bar" onClick={() => setCalOpen(o => !o)}>
+        <div className="date-bar-left">
+          <span className="date-bar-label">Logging for</span>
+          <span className={`date-bar-value ${isPast?'past':''}`}>{label}</span>
+        </div>
+        <span className={`chevron ${calOpen?'open':''}`}>⌄</span>
+      </div>
+      {calOpen && <MiniCalendar selectedDate={selectedDate} todayStr={todayStr} onSelect={d => { setSelectedDate(d); setCalOpen(false); }} />}
+      <div className="summary">
+        <div className="summary-bar-wrap"><div className="summary-bar" style={{width:`${pct}%`}} /></div>
+        <div className="summary-text"><span>{doneCount}</span>/{HABITS.length} habits</div>
+      </div>
+      <div className="section-label">Build 💪</div>
+      {HABITS.filter(h=>h.type==='build').map(h => (
+        <HabitCard key={h.id} habit={h} value={getVal(data,selectedDate,h.id)} streak={calcStreak(data,h.id)} onToggle={()=>handleToggle(h.id)} />
+      ))}
+      <div className="section-label" style={{marginTop:4}}>Avoid 🚫</div>
+      {HABITS.filter(h=>h.type==='avoid').map(h => (
+        <HabitCard key={h.id} habit={h} value={getVal(data,selectedDate,h.id)} streak={calcStreak(data,h.id)} onToggle={()=>handleToggle(h.id)} />
+      ))}
+    </>
+  );
+}
+
+// ── ProgressTab ───────────────────────────────────────────────────────────────
+function ProgressTab({ data }) {
+  const [rangeId, setRangeId] = useState('this_week');
+  const { start, end } = getRangeForId(rangeId);
+  const days = dateRange(start, end);
+  const getPct = (habit) => {
+    const logged = days.filter(d => getVal(data,d,habit.id) !== null);
+    if (!logged.length) return null;
+    return Math.round(logged.filter(d => isSuccess(habit, getVal(data,d,habit.id))).length / logged.length * 100);
+  };
+  const pctCls = (p) => p===null?'':p>=70?'high':p>=40?'mid':'low';
+  return (
+    <>
+      <div className="range-scroll">
+        {TIME_RANGES.map(r => (
+          <div key={r.id} className={`range-chip ${rangeId===r.id?'active':''}`} onClick={() => setRangeId(r.id)}>{r.label}</div>
+        ))}
+      </div>
+      <div className="progress-cards">
+        {HABITS.map(h => {
+          const pct = getPct(h); const cls = pctCls(pct);
+          const dots = days.map(d => { const v = getVal(data,d,h.id); return v===null?'empty':isSuccess(h,v)?'success':'fail'; });
+          return (
+            <div key={h.id} className="progress-card">
+              <div className="progress-card-header">
+                <div className="progress-card-title">{h.icon} {h.label}</div>
+                <div className={`progress-pct ${cls}`}>{pct===null?'—':`${pct}%`}</div>
+              </div>
+              <div className="progress-bar-wrap"><div className={`progress-bar ${cls}`} style={{width:`${pct||0}%`}} /></div>
+              <div className="progress-dots">
+                {dots.map((dot,i) => <div key={i} className={`progress-dot ${dot}`} title={days[i]} />)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+// ── App ───────────────────────────────────────────────────────────────────────
+function App() {
+  const [username, setUsername] = useState(() => loadUser());
+  const [data, setData] = useState({});
+  const [tab, setTab] = useState('today');
+  const [nameInput, setNameInput] = useState('');
+
+  useEffect(() => { if (username) setData(loadData(username)); }, [username]);
+
+  if (!username) {
+    return (
+      <div className="onboard">
+        <div className="logo">HABIT<span>OS</span></div>
+        <p className="onboard-sub">Your daily performance dashboard</p>
+        <div className="onboard-form">
+          <input className="onboard-input" placeholder="Enter your name" value={nameInput}
+            onChange={e => setNameInput(e.target.value)}
+            onKeyDown={e => { if (e.key==='Enter' && nameInput.trim()) { saveUser(nameInput.trim()); setUsername(nameInput.trim()); } }} autoFocus />
+          <button className="btn-primary" disabled={!nameInput.trim()}
+            onClick={() => { saveUser(nameInput.trim()); setUsername(nameInput.trim()); }}>
+            LET'S GO →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const weekly = calcWeekly(data);
+  const h = new Date().getHours();
+  const greeting = h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening';
+
+  return (
+    <div className="app">
+      <div className="header">
+        <div className="header-top">
+          <div>
+            <div className="greeting">Good {greeting}</div>
+            <div className="uname">{username.toUpperCase()}</div>
+            <button className="switch-user" onClick={() => { clearUser(); setUsername(''); setData({}); }}>Switch user</button>
+          </div>
+          <div className="weekly-pill">
+            <div className="weekly-label">This Week</div>
+            <div className="weekly-score">{weekly.score}/{weekly.total}</div>
+          </div>
+        </div>
+        <div className="tabs">
+          <button className={`tab ${tab==='today'?'active':''}`} onClick={() => setTab('today')}>Today</button>
+          <button className={`tab ${tab==='progress'?'active':''}`} onClick={() => setTab('progress')}>Progress</button>
+        </div>
+      </div>
+      <div className="content">
+        {tab==='today' ? <TodayTab data={data} setData={setData} username={username} /> : <ProgressTab data={data} />}
+      </div>
+      <nav className="bottom-nav">
+        <button className={`nav-btn ${tab==='today'?'active':''}`} onClick={() => setTab('today')}>
+          <span className="nav-icon">✓</span><span className="nav-label">Today</span>
+        </button>
+        <button className={`nav-btn ${tab==='progress'?'active':''}`} onClick={() => setTab('progress')}>
+          <span className="nav-icon">📊</span><span className="nav-label">Progress</span>
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
